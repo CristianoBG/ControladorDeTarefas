@@ -1,0 +1,44 @@
+package ControladorT.com.br.ControladordeTarefas.config;
+
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeRequests()
+                .antMatchers("/tarefas/**").authenticated() // Requer autenticação para /tarefas
+                .anyRequest().permitAll() // Permite acesso a todas as outras URLs sem autenticação
+            .and()
+            .formLogin() // Ativa o login baseado em formulário
+                .loginPage("/login") // Define a URL da página de login
+                .permitAll() // Permite acesso à página de login sem autenticação
+            .and()
+            .csrf().disable(); // Desabilita proteção CSRF (necessário para APIs REST)
+
+        return http.build();
+    }
+
+    @Bean
+    public AuthenticationManagerBuilder authenticationManagerBuilder(HttpSecurity http) throws Exception {
+        return new AuthenticationManagerBuilder(http.getSharedObject(AuthenticationManagerBuilder.class))
+                .inMemoryAuthentication()
+                .withUser("user")
+                .password("{noop}password")
+                .roles("USER")
+                .and()
+                .withUser("admin")
+                .password("{noop}admin")
+                .roles("ADMIN");
+    }
+}
